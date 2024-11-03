@@ -20,26 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package workflow
 
 import (
-	"workshop/client"
-	"workshop/worker"
-	"workshop/workflow"
+	"workshop/workflow/helloworld"
 
-	"github.com/uber-go/tally"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
-func main() {
-	fx.New(
-		fx.Supply(
-			fx.Annotate(tally.NoopScope, fx.As(new(tally.Scope))),
-		),
-		fx.Provide(zap.NewDevelopment),
-		client.Module,
-		worker.Module,
-		workflow.Module,
-	).Run()
-}
+var Module = fx.Invoke(
+	helloworld.RegisterWorkflow,
+)

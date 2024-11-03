@@ -20,69 +20,62 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package worker
+package client
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/uber-go/tally"
 	"go.uber.org/cadence/.gen/go/cadence/workflowserviceclient"
-	"go.uber.org/cadence/worker"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
+	"go.uber.org/yarpc"
+	"go.uber.org/yarpc/transport/grpc"
 )
 
 const (
-	domain = "cadence-workshop"
-
-	taskListName = "tasklist"
+	hostAddress    = "127.0.0.1:7833"
+	clientName     = "cadence-workshop-worker"
+	cadenceService = "cadence-frontend"
 )
 
 type Params struct {
 	fx.In
 
-	Lc            fx.Lifecycle
-	Logger        *zap.Logger
-	Metrics       tally.Scope
-	CadenceClient workflowserviceclient.Interface
+	Lc fx.Lifecycle
 }
 
-type Result struct {
-	fx.Out
+func New(params Params) workflowserviceclient.Interface {
+	dispatcher := yarpc.NewDispatcher(yarpc.Config{
+		Name: clientName,
+		Outbounds: yarpc.Outbounds{
+			cadenceService: {Unary: grpc.NewTransport().NewSingleOutbound(hostAddress)},
+		},
+	})
 
-	Worker worker.Worker
-}
+	setUpLcHooks(params, dispatcher)
+	clientConfig := dispatcher.ClientConfig(cadenceService)
 
-func New(params Params) Result {
-	workerOptions := worker.Options{
-		Logger:       params.Logger,
-		MetricsScope: params.Metrics,
-	}
-
-	w := worker.New(params.CadenceClient, domain, taskListName, workerOptions)
-
-	setUpLcHooks(params.Lc, w)
-
-	return Result{
-		Worker: w,
-	}
+	return workflowserviceclient.New(clientConfig)
 }
 
 var Module = fx.Provide(New)
 
-func setUpLcHooks(lc fx.Lifecycle, w worker.Worker) {
-	lc.Append(fx.Hook{
-		OnStart: func(context.Context) error {
-			err := w.Start()
-			if err != nil {
-				return fmt.Errorf("start worker: %w", err)
-			}
-			return nil
-		},
-		OnStop: func(context.Context) error {
-			w.Stop()
-			return nil
-		},
-	})
+func setUpLcHooks(params Params, dispatcher *yarpc.Dispatcher) {
+	params.Lc.Append(
+		fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				err := dispatcher.Start()
+				if err != nil {
+					return fmt.Errorf("start dispatcher: %w", err)
+				}
+				return nil
+			},
+			OnStop: func(ctx context.Context) error {
+				err := dispatcher.Stop()
+				if err != nil {
+					return fmt.Errorf("stop dispatcher: %w", err)
+				}
+				return nil
+			},
+		})
 }
