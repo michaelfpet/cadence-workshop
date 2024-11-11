@@ -54,7 +54,7 @@ brew install go
 After installation, verify that Go compiler was installed correctly by checking its version:
 ```go version
 ```
-You should see something like git version 1.2x.x.
+You should see something like go version go1.x.x.
 
 ## Linux
 
