@@ -1,3 +1,8 @@
+# Before you start
+
+This guidance requires `git`, `docker-compose` and `go` compiler installed.
+If you're missing any of them, check out [Prerequisites document](PREREQ.md)
+
 # Getting started
 
 You will need three terminals to run the code in this repository.
