@@ -1,8 +1,7 @@
 ## Prerequisites to run the Cadence server locally
 
-You need to install prerequisites which are necessary to run Cadence.  
-You need `git`, `docker` and `docker-compose`.  
-If you're missing any of them, follow the next session for your OS for step-by-step guidance:
+You need to install prerequisites which are necessary to run Cadence.   
+You need `git`, `docker-compose` and `go` compiler. If you're missing any of them, follow the next session for your OS for step-by-step guidance:
 
 ## MacOS
 
@@ -28,22 +27,34 @@ You should see something like git version 2.x.x.
 ### Install Docker and docker-compose:
 1. Go to the official Docker website: [download Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/).
 2. Install Docker Desktop:
-    - Open the .dmg file you just downloaded.
-    - Drag the Docker icon to the Applications folder to install it.
+   - Open the .dmg file you just downloaded.
+   - Drag the Docker icon to the Applications folder to install it.
 3. Start Docker Desktop:
-    - Open the Applications folder and click on the Docker app to launch it.
-    - Docker may prompt you to enter your macOS password to complete the installation.
+   - Open the Applications folder and click on the Docker app to launch it.
+   - Docker may prompt you to enter your macOS password to complete the installation.
 4. Verify Docker Installation:
-    - After Docker Desktop starts, you should see the Docker icon in the macOS menu bar.
-    - To verify the installation, open a terminal and run:
-       ```bash
-       docker --version
-       ```
+   - After Docker Desktop starts, you should see the Docker icon in the macOS menu bar.
+   - To verify the installation, open a terminal and run:
+      ```bash
+      docker --version
+      ```
 5. Verify Docker Compose Installation: Docker Compose is bundled with Docker Desktop, so it should already be installed. To verify, run:
     ```bash
     docker-compose --version
     ````
-This will display the installed version of Docker Compose.
+    This will display the installed version of Docker Compose.
+
+### Install Go:
+
+To install Go compiler (also known as golang), do the run in Terminal:
+```bash
+brew install go
+````
+
+After installation, verify that Go compiler was installed correctly by checking its version:
+```go version
+```
+You should see something like git version 1.2x.x.
 
 ## Linux
 
@@ -51,6 +62,7 @@ We assume you're using Ubuntu distribution. If you're using other, you most prob
 
 ### Install Git:
 
+(Most probably it is already installed if you're using Ubuntu)
 1. Open **Terminal**
 2. Run the following command to install `git`:
 ```bash
@@ -62,4 +74,33 @@ git --version
 ````
 You should see something like git version 2.x.x.
 
-TODO - write about docker-compose
+### Install Docker and docker-compose:
+1. Run the following in your terminal:
+   ```bash
+   sudo apt-get install docker-compose
+   ````
+2. Add current user to docker group:
+   ```bash
+   sudo usermod -a -G docker $USER
+   ````
+3. Run the following to apply the above change without re-logging:
+   ```bash
+   newgrp docker
+   ````
+4. Verify Docker Installation: Docker Compose is bundled with Docker Desktop, so it should already be installed. To verify, run:
+    ```bash
+    docker run hello-world
+    ````
+   This should write some greeting message indicating docker installation is OK and you have enough permissions
+5. Verify Docker Compose Installation:
+    ```bash
+    docker-compose --version
+    ````
+   This will display the installed version of Docker Compose.
+
+### Install Go:
+
+To install Go compiler, run the following:
+```bash
+sudo apt-get install golang-go
+````
