@@ -90,7 +90,7 @@ func validatePayment(ctx context.Context, order Order) (string, error) {
 	info := activity.GetInfo(ctx)
 	if info.Attempt < 3 {
 		activity.GetLogger(ctx).Info("Temporary failure in payment processing")
-		return 0, fmt.Errorf("temporary issue, please retry")
+		return "", fmt.Errorf("temporary issue, please retry")
 	}
 	
 	activity.GetLogger(ctx).Info("Payment processed successfully")
