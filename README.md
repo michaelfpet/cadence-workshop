@@ -79,16 +79,18 @@ cadence --domain cadence-workshop wf start --tasklist tasklist --execution_timeo
 ```
 
 ### Task 2: Simulate Payment Failure in validatePayment() activity
-First, modify the processPaymentActivity to simulate a failure. This can be done by causing the activity to fail intermittently, such as by returning an error during the first few attempts, which will simulate a temporary issue like a network failure.
+First, modify the validatePayment to simulate a failure. This can be done by causing the activity to fail intermittently, such as by returning an error during the first few attempts, which will simulate a temporary issue like a network failure.
 <br />
 <br />
-Use the code below to simulate the failure:
+Use the code below to simulate the failure. <br />
+info.Attempt value from the activity.GetInfo(ctx) function tracks the current attempt count. 
 ```go
-func processPaymentActivity(ctx context.Context, order Order) (string, error) {
+func validatePayment(ctx context.Context, order Order) (string, error) {
 	// Simulate a failure
-	if time.Now().Unix()%2 == 0 { // Fail intermittently (every second attempt).
+	info := activity.GetInfo(ctx)
+	if info.Attempt < 3 {
 		activity.GetLogger(ctx).Info("Temporary failure in payment processing")
-		return "", fmt.Errorf("temporary network issue")
+		return 0, fmt.Errorf("temporary issue, please retry")
 	}
 	
 	activity.GetLogger(ctx).Info("Payment processed successfully")
@@ -96,12 +98,13 @@ func processPaymentActivity(ctx context.Context, order Order) (string, error) {
 }
 ```
 
-Ensure that the workflow fails intermittently and return an error.
+Ensure that the workflow fails in the first runs and returns an error.
 
 ### Task 3: Add Retry Policy to validatePayment() activity
 Now, implement a retry policy to handle the temporary failures simulated in Task 2. <br /> 
 The retry policy should retry the validatePayment activity up to 3 times with exponential backoff. <br />
 Use the paymentRetryPolicy configuration below:
+Read more about the activity and workflow retries: https://cadenceworkflow.io/docs/go-client/retries/
 ```go
 // Retry policy configuration: exponential backoff with a maximum of 3 retries.
 var paymentRetryPolicy = &activity.RetryPolicy{
@@ -119,7 +122,10 @@ activityOptions := workflow.ActivityOptions{
 }
 
 // Set the activity options to the context.
-ctx = workflow.WithActivityOptions(ctx, activityOptions)
+activityCtx = workflow.WithActivityOptions(ctx, activityOptions)
+
+// Start the activity
+workflow.ExecuteActivity(activityCtx, activities.validatePayment)
 ```
 - workflow.ActivityOptions{}: This is a struct in Cadence that allows you to configure options for executing an activity within a workflow.
 - workflow.WithActivityOptions(ctx, activityOptions): This is a function provided by Cadence that applies the given activity options (such as the retry policy) to the workflow context (ctx).
