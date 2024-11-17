@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ "$(uname)" == "Darwin" ]; then
+    # Mac OS X
+    docker run -i -t ubercadence/cli:master --address host.docker.internal:7933 --transport tchannel "$@"
+  else
+    # Linux
+    docker run -i -t --network=host ubercadence/cli:master --address 127.0.0.1:7933 --transport tchannel "$@"
+fi
