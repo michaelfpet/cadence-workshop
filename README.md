@@ -22,37 +22,14 @@ The cadence web UI will be available at http://localhost:8088.
 
 ## Running the Cadence CLI
 
-First lets setup an alias for the Cadence CLI.
-### Alias for Cadence CLI
-An easy way to run the Cadence CLI is to use Docker. We will
-create an alias for the command to make it easier to run. If you do not 
-want to create an alias, you can run the command directly.
-
-After setting up the alias you can run the Cadence CLI by running `cadence` in a terminal.
-
-#### Mac:
-Run the following command in a terminal:
-```bash
-alias cadence="docker run -i -t ubercadence/cli:master --address host.docker.internal:7933"
-```
-
-#### Linux:
-Run the following command in a terminal:
-```bash
-alias cadence="docker run -i -t --network=host ubercadence/cli:master --address 127.0.0.1:7933"
-```
-
-#### Windows:
-Create a file called `cadence.bat` with the following content:
-```bash
-docker run -i -t ubercadence/cli:master --address host.docker.internal:7933 %*
-```
+Every time we will interact with Cadence, we're going to use cadence-cli.
+For this, you simply run `./cadence` command from the repository root.
 
 ### Creating a domain for the worker
 Before we can start the worker, we need to create a domain for it.
 Run the following command in a terminal:
 ```bash
-cadence --domain cadence-workshop domain register
+./cadence --domain cadence-workshop domain register
 ```
 
 You should now be able to see the domain in the Cadence web UI here:
@@ -67,7 +44,7 @@ go run main.go
 ## Starting a workflow
 To start the hello world workflow, run the following command:
 ```bash
-cadence --domain cadence-workshop wf start --tasklist tasklist --execution_timeout 10 --workflow_type HelloWorld --input '{"message":"Cadence"}'
+./cadence --domain cadence-workshop wf start --tasklist tasklist --execution_timeout 10 --workflow_type HelloWorld --input '{"message":"Cadence"}'
 ```
 
 The workflow should start, and you should see the workflow in the web UI:
@@ -80,7 +57,7 @@ The shipProduct() activity should verify that the order.Customer (representing t
 if it is, return an error indicating that shipping failed, otherwise simulate shipping and return true for successful shipment. <br />
 To start the OrderProcessingWorkflow, run the following command:
 ```bash
-cadence --domain cadence-workshop wf start --tasklist tasklist --execution_timeout 10 --workflow_type OrderProcessingWorkflow --input '{"id":"Order123", "customer": "Cadence", "amount": 20, "address": "Uber office"}'
+./cadence --domain cadence-workshop wf start --tasklist tasklist --execution_timeout 10 --workflow_type OrderProcessingWorkflow --input '{"id":"Order123", "customer": "Cadence", "amount": 20, "address": "Uber office"}'
 ```
 
 ### Task 2: Simulate Payment Failure in validatePayment() activity
