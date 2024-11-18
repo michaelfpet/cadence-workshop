@@ -89,7 +89,7 @@ Use the paymentRetryPolicy configuration below:
 Read more about the activity and workflow retries: https://cadenceworkflow.io/docs/go-client/retries/
 ```go
 // Retry policy configuration: exponential backoff with a maximum of 3 retries.
-var paymentRetryPolicy = &activity.RetryPolicy{
+var paymentRetryPolicy = &cadence.RetryPolicy{
 	InitialInterval:    1 * time.Second,    // Start with 1 second.
 	BackoffCoefficient: 2.0,                // Exponential backoff.
 	MaximumInterval:    10 * time.Second,   // Max retry interval.
