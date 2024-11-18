@@ -70,7 +70,7 @@ info.Attempt value from the activity.GetInfo(ctx) function tracks the current at
 func validatePayment(ctx context.Context, order Order) (string, error) {
 	// Simulate a failure
 	info := activity.GetInfo(ctx)
-	if info.Attempt < 3 {
+	if info.Attempt < 2 {
 		activity.GetLogger(ctx).Info("Temporary failure in payment processing")
 		return "", fmt.Errorf("temporary issue, please retry")
 	}
