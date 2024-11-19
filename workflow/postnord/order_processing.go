@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/worker"
 	"go.uber.org/cadence/workflow"
@@ -37,14 +38,24 @@ type Order struct {
 // 2. Then, it proceeds to ship the package.
 // 3. Finally, it returns a result indicating success or failure based on the payment and shipping status.
 func OrderProcessingWorkflow(ctx workflow.Context, order Order) (string, error) {
+	retryPolicy := &cadence.RetryPolicy{
+		InitialInterval:    1 * time.Second,  // Start with 1 second.
+		BackoffCoefficient: 2.0,              // Exponential backoff.
+		MaximumInterval:    10 * time.Second, // Max retry interval.
+		MaximumAttempts:    3,                // Retry up to 3 times.
+	}
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
+		RetryPolicy:            retryPolicy,
 	}
+
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Starting OrderProcessingWorkflow", zap.String("orderID", order.ID), zap.String("customer", order.Customer))
+	fmt.Print("System print: Starting OrderProcessingWorkflow", zap.String("orderID", order.ID), zap.String("customer", order.Customer))
 
 	// Step 1: Validate the payment.
 	// The payment validation step checks if the payment for the order is valid.
@@ -55,6 +66,9 @@ func OrderProcessingWorkflow(ctx workflow.Context, order Order) (string, error) 
 	if err != nil {
 		return "", fmt.Errorf("validate payment for order: %v", err)
 	}
+
+	workflow.Sleep(ctx, 2*time.Minute)
+	fmt.Print("System print2: Starting OrderProcessingWorkflow", zap.String("orderID", order.ID), zap.String("customer", order.Customer))
 
 	// Step 2: Ship the package
 	// Once the payment is validated, we proceed to ship the package.
@@ -69,11 +83,27 @@ func OrderProcessingWorkflow(ctx workflow.Context, order Order) (string, error) 
 // Add an activity here that validates a payment.
 // The validation fails if the order amount is greater than 25 (for example, due to payment policy restrictions).
 func validatePayment(ctx context.Context, order Order) (string, error) {
-	return "", nil
+	if order.Amount > 25 {
+		return "", fmt.Errorf("payment validation failed: order amount exceeds limit")
+	}
+
+	info := activity.GetInfo(ctx)
+	if info.Attempt < 2 {
+		activity.GetLogger(ctx).Info("Temporary failure in payment processing", zap.Int32("attempt", info.Attempt))
+		return "", fmt.Errorf("temporary issue, please retry")
+	}
+
+	activity.GetLogger(ctx).Info("Payment processed successfully")
+
+	return "Payment successfull!", nil
 }
 
 // Add another activity that ships the package.
 // This activity checks if the shipping address is provided. The shipping fails if the address is empty.
 func shipPackage(ctx context.Context, order Order) (string, error) {
-	return "", nil
+
+	if len(order.Customer) == 0 {
+		return "", fmt.Errorf("shipping failed: customer (shipping address) is missing")
+	}
+	return "Shipment successfull!", nil
 }
